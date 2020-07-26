@@ -1,14 +1,15 @@
-const mysql = require("mysql");
 const inquirer = require("inquirer");
 require("console.table");
-// const sql = require("./sql");
+const MySQL = require("mysql");
 
-var connection = mysql.createConnection({
+
+
+var connection = MySQL.createConnection({
   host: "localhost",
-  port: 3306,
+  port: 8889,
   user: "root",
-  password: "~Ma009090",
-  database: "employeesDB"
+  password: "root",
+  database:"employeesDB"
 });
 
 // connect to the mysql server and sql database
@@ -82,7 +83,7 @@ function viewEmployee() {
   console.log("Viewing employees\n");
 
   var query =
-    `SELECT e.id, e.first_name, e.last_name, r.title, d.name AS department, r.salary, CONCAT(m.first_name, ' ', m.last_name) AS manager
+    `SELECT e.id, e.first_name, e.last_name, r.title, r.salary, d.name AS department, CONCAT(m.first_name, ' ', m.last_name) AS manager
   FROM employee e
   LEFT JOIN role r
 	ON e.role_id = r.id
@@ -110,13 +111,12 @@ function viewEmployeeByDepartment() {
   console.log("Viewing employees by department\n");
 
   var query =
-    `SELECT d.id, d.name, r.salary AS budget
-  FROM employee e
-  LEFT JOIN role r
-	ON e.role_id = r.id
-  LEFT JOIN department d
-  ON d.id = r.department_id
-  GROUP BY d.id, d.name`
+    `SELECT d.name AS department_name, e.id, e.first_name, e.last_name, r.salary
+    FROM employee e
+    LEFT JOIN role r
+    ON e.role_id = r.id
+    LEFT JOIN department d
+    ON d.id = r.department_id`
 
   connection.query(query, function (err, res) {
     if (err) throw err;
@@ -155,13 +155,13 @@ function promptDepartment(departmentChoices) {
       console.log("answer ", answer.departmentId);
 
       var query =
-        `SELECT e.id, e.first_name, e.last_name, r.title, d.name AS department 
-  FROM employee e
-  JOIN role r
-	ON e.role_id = r.id
-  JOIN department d
-  ON d.id = r.department_id
-  WHERE d.id = ?`
+        `SELECT d.name AS department, e.id AS employee_id, e.first_name, e.last_name, r.title  
+        FROM employee e
+        JOIN role r
+        ON e.role_id = r.id
+        JOIN department d
+        ON d.id = r.department_id
+        WHERE d.id = ?`
 
       connection.query(query, answer.departmentId, function (err, res) {
         if (err) throw err;
@@ -191,11 +191,11 @@ function addEmployee() {
 
   connection.query(query, function (err, res) {
     if (err) throw err;
-
+    console.log("line 194", res);
     const roleChoices = res.map(({ id, title, salary }) => ({
       value: id, title: `${title}`, salary: `${salary}`
     }));
-
+    console.log("line 198", roleChoices);
     console.table(res);
     console.log("RoleToInsert!");
 
@@ -414,8 +414,9 @@ function addRole() {
     ON e.role_id = r.id
     JOIN department d
     ON d.id = r.department_id
-    GROUP BY d.id, d.name`
-
+    
+    `
+// GROUP BY d.id, d.name
   connection.query(query, function (err, res) {
     if (err) throw err;
 
